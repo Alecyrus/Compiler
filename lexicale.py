@@ -1,3 +1,4 @@
+import copy
 
 class Lexicale(object):
     def __init__(self):
@@ -71,7 +72,9 @@ class Lexicale(object):
                 else:
                     print(" ", end="")
             print("\nError: invaid character" % self.error)
-        return self.tokens, self.symbol_table                     
+        tokens = copy.deepcopy(self.tokens)
+        self.tokens.reverse()
+        return tokens, self.symbol_table                     
 
     # Remove the blanks and enters in the code string.
     def pre_handle(self, code):
@@ -168,6 +171,10 @@ class Lexicale(object):
                 self.push_tokens(target, token)
                 return target, _next
 
+    def get_token(self):
+        print("Get a token: %s" % str(self.tokens[len(self.tokens)-1]))
+        return self.tokens.pop()
+
 if __name__ == "__main__":
     code = """
     int a;
@@ -183,14 +190,15 @@ while(a < 40)
         a=b;
 } """
     #code = input("Please input your code:\n")
-    scaner = Lexicale()
-    tokens, symbol_table = scaner.scan(code)
+    scanner = Lexicale()
+    tokens, symbol_table = scanner.scan(code)
     print("\nTOKENS:")
     for token in tokens:
        print(token)
     print("\nSYMBOL_TABLE:")
     for symbol in symbol_table:
         print(symbol)
+    scanner.get_token()
 
 
 
