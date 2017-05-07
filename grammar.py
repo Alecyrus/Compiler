@@ -2,6 +2,9 @@ from lexicale import Lexicale
 from pprint import pprint
 import copy
 import pdb 
+import sys 
+
+sys.setrecursionlimit(100000000)
 
 class Grammar(object):
     def __init__(self, scanner):
@@ -25,7 +28,6 @@ class Grammar(object):
         self.states = []
         
         # analyze_table
-        self.analyze_table = {}
         self.analyze_table = {}
 
 
@@ -64,12 +66,13 @@ class Grammar(object):
         for p in self.pros:
             if p[0] not in self.non_ts:
                 self.non_ts.append(p[0])
+        self.ts.append('$')
         self.print(self.pros, "Productions")
         self.print(self.ts, "Terminal symbols")
         self.print(self.non_ts, "Non-terminal symbols")
-        
         self.get_all_states()
-        self.print(self.states, "All States")
+        #self.get_follow('Q')
+        #self.print(self.states, "All States")
         #self.states = [[(0, 1)], [(0, -1), (1, 2)], [(2, -1), (3, 2)], [(4, -1)], [(5, 2)], [(6, -1)]]
         #self.forward([(0,-1),(1,2)])
 
@@ -78,8 +81,14 @@ class Grammar(object):
 
     def forward(self, state):
         #pdb.set_trace() 
-        #self.print(state, "begin_state")
-        raw_closure = copy.deepcopy(state) + self.get_closure(state)
+        self.print(state[0], "begin_state")
+        goto = {'Action':{},'Goto':{}}
+        for t in self.ts:
+            goto['Action'][t] = None
+        for nt in self.non_ts:
+            if nt != 'Q':
+                goto['Goto'][nt] = None 
+        raw_closure = copy.deepcopy(state[0]) + self.get_closure(state[0])
         next_states = []
 
         X = []
@@ -88,6 +97,12 @@ class Grammar(object):
         #self.print(closure, "state_closure_before")
         for c in raw_closure:
             if  c[1] == -1 or self.pros[c[0]][c[1]] == "NULL":
+                for i in self.get_follow(self.pros[c[0]][0]):
+                    if i == '$' and self.pros[c[0]][0] == 'Q':
+                        goto['Action'][i] = 'accept'
+                    else:
+                        goto['Action'][i] = 'r'+ str(c[0])
+
                 continue
             closure.append(c)
             temp = self.pros[c[0]][c[1]]
@@ -97,7 +112,7 @@ class Grammar(object):
             #self.print(X, "Can NOT forward")
             return next_states
         #self.print(closure, "state_closure_before")
-        #self.print(X, "forward_symbol")
+        self.print(X, "forward_symbol")
         for x in X:
             next_state=[]
             for pro in closure:
@@ -116,8 +131,14 @@ class Grammar(object):
                     self.states.append(copy.deepcopy(next_state))
                     index =  len(self.states)-1 
                     next_states.append(index)
+                print('x: '+x+' index:'+str(index))
+                if x in self.ts:
+                    goto['Action'][x] = 's' + str(index)
+                elif x in self.non_ts:
+                    goto['Goto'][x] = index
         
-        #self.print(self.states, "result")
+        self.print(goto, "goto")
+        self.analyze_table[str(state[1])] = copy.deepcopy(goto)
         return copy.deepcopy(next_states)
             
 
@@ -128,18 +149,20 @@ class Grammar(object):
 
         # state 0
         self.states.append([(0,1)])
-        nas_list.append([(0,1)])
+        nas_list.append(([(0,1)], 0))
         while(nas_list):
             nas_state = nas_list.pop()
             temp = self.forward(nas_state)
             for t in temp:
-                nas_list.append(copy.deepcopy(self.states[t]))
-        #pprint(self.states)
+                nas_list.append((copy.deepcopy(self.states[t]), t))
+        self.print(self.states, 'ALL_states')
+        self.print(self.analyze_table, 'Analyze Table')
             
             
 
             
     def get_closure(self, pros):
+        pprint(pros)
         #print("GET_CLOSURE===========START=")
         closure = []
 
@@ -185,7 +208,60 @@ class Grammar(object):
                 return index
         #print("CHECK====================False===\n")
         return False
-    
+
+    def get_first(self, index):
+        first = []
+        has_check = []
+        stack = [index]
+        while(True):
+            if not stack:
+                break
+            pro = stack.pop()
+            if pro not in has_check:
+                for p in self.pros:
+                    if p[0] == pro:
+                        stack.append(p[1])
+            if pro in self.ts and pro not in first:
+                first.append(pro)
+            has_check.append(pro)
+        #self.print(first, index)
+        return first
+
+
+    def dir_follow(self, non_ts, follow):
+        #print("Search " + non_ts)
+        #self.print(follow, "BEFORE " + non_ts)
+        if non_ts == 'Q' and '$' not in follow:
+            #print("ADD $")
+            follow.append('$')
+        for pro in self.pros:
+            if non_ts in pro[1:]:
+                #self.print(pro, "Found")
+                index = pro[1:].index(non_ts) + 1
+                #print("index" + str(index))
+                if index > 0:
+                    if index == len(pro) - 1:
+                        #self.print(pro, "....")
+                        self.dir_follow(pro[0], follow)
+                    else:
+                        #print(pro)
+                        temp = self.get_first(pro[index+1])
+                        for ts in temp:
+                            if ts != 'NULL' and ts not in follow:
+                                #print("ADD "+ ts)
+                                follow.append(ts)
+                        if 'NULL' in temp:
+                            self.dir_follow(pro[0], follow)
+        #self.print(follow, "non_ts FOLLOW:" + non_ts)
+
+    def get_follow(self, non_ts):
+        follow = []
+        self.dir_follow(non_ts, follow)
+        #self.print(follow, "result")
+        return follow
+
+                    
+                
 
 if __name__ == "__main__":
     code = """
