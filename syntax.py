@@ -48,6 +48,7 @@ class Syntax(object):
         keywords = ["WHILE", "IF", "DO", "ELSE", "THEN"]
         raw_productions = productions.replace(' ','').split('\n')
         self.pros = []
+
         for p in raw_productions:
             if not p:
                 continue
@@ -70,10 +71,6 @@ class Syntax(object):
         self.print(self.ts, "Terminal symbols")
         self.print(self.non_ts, "Non-terminal symbols")
         self.get_all_states()
-        #self.get_follow('Q')
-        #self.print(self.states, "All States")
-        #self.states = [[(0, 1)], [(0, -1), (1, 2)], [(2, -1), (3, 2)], [(4, -1)], [(5, 2)], [(6, -1)]]
-        #self.forward([(0,-1),(1,2)])
         self.print_table()
 
 
