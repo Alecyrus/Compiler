@@ -1,10 +1,12 @@
+import sys
+import pdb 
+import copy
+import uuid
+
 from lexicale import Lexicale
 from pprint import pprint
 from prettytable import PrettyTable
-import copy
-import pdb 
-import sys
-
+from treelib import Node, Tree
 
 class Syntax(object):
     def __init__(self, scanner):
@@ -16,16 +18,16 @@ class Syntax(object):
         self.result = list()
         
         # non-terminal symbols
-        self.non_ts = []
+        self.non_ts = list()
 
         # terminal symbols 
-        self.ts = []
+        self.ts = list()
 
         # productions
-        self.pros = []
+        self.pros = list()
 
         # closures
-        self.states = []
+        self.states = list()
         
         # analyze_table
         self.analyze_table = {}
@@ -96,9 +98,38 @@ class Syntax(object):
                 if self.non_ts[p] != 'Q':
                     temp.append(self.analyze_table[str(i)]['Goto'][self.non_ts[p]])
             table.add_row(copy.deepcopy(temp))
-
         print(table)
         print("#--------Analyze Table--------#")
+
+
+    def tree_print(self):
+        print("#--------Syntax Tree--------#")
+        resultss = copy.deepcopy(self.result)
+        root_stack = []
+        tree = Tree()
+        print()
+        while(resultss):
+            pro = resultss.pop()
+            node_id = pro[0] + str(uuid.uuid4()).replace('-','')[:9]
+            if root_stack:
+                parent_id = root_stack.pop()
+                tree.create_node(pro[0], copy.deepcopy(node_id), parent=parent_id)
+            else:
+                tree.create_node(pro[0], copy.deepcopy(node_id))
+            proo = pro[1:]
+            proo.reverse()
+            for node in proo:
+                temp = node + str(uuid.uuid4()).replace('-','')[:9]
+                tree.create_node(node, temp, parent=node_id)
+                if node in self.non_ts:
+                    root_stack.append(temp)
+            
+        tree.show()    
+        print("#--------Syntax Tree--------#")
+            
+        
+        
+
 
 
 
@@ -350,9 +381,13 @@ class Syntax(object):
                 symbol_stack.append(pro[0])
                 analyze_stack.append(int(self.analyze_table[str(top)]['Goto'][pro[0]]))
                 self.result.append(pro)
-                self.result_numbers.append([int(Action[token[0]][1:])])
+                self.result_numbers.append(int(Action[token[0]][1:]))
                 
             elif Action[token[0]] == 'accept':
+                pro = self.pros[0]
+                self.result.append(pro)
+                self.result_numbers.append(0)
+
                 break
             else:
                 print("Syntax Error!")

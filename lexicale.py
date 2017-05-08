@@ -1,4 +1,5 @@
 import copy
+
 from pprint import pprint
 from prettytable import PrettyTable 
 
@@ -132,7 +133,7 @@ class Lexicale(object):
         s5 = {"token":("EQ", "EQ"), "_next":1, "target":"="}
         s2 = {"token":("LE", "LE"), "_next":2, "target":"<="}
         s3 = {"token":("NT", "NE"), "_next":2, "target":"<>"}
-        s4 = {"token":("LE", "LT"), "_next":1, "target":"<"}
+        s4 = {"token":("LT", "LT"), "_next":1, "target":"<"}
         s7 = {"token":("GE", "GE"), "_next":2, "target":">="}
         s8 = {"token":("GT", "GT"), "_next":2, "target":">"}
         end_states = [s5,s2,s3,s4,s7,s8] 
@@ -182,7 +183,7 @@ class Lexicale(object):
     def pretty_print(self, symbol_table):
         print('#\n\n---------Symbol Table---------#')
         cols = ['string', 'start', 'length', 'type','value']
-        table = PrettyTable(symbol_table[0].keys())
+        table = PrettyTable(cols)
         table.padding_width = 1
         for i in range(len(symbol_table)):
             temp=[]
@@ -213,15 +214,3 @@ while(a < 40)
         print(symbol)
     scanner.pretty_print(symbol_table)
     #scanner.get_token()
-
-
-
-
-
-
-
-
-
-
-
-

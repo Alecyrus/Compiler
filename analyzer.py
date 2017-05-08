@@ -1,6 +1,7 @@
+import sys
+
 from lexicale import Lexicale
 from  syntax import Syntax
-import sys
 
 
 test_code1 = """
@@ -61,5 +62,6 @@ while (True):
     tokens, symbol_table = scanner.scan(code)
     scanner.pretty_print(symbol_table)
     analyzer.parser(tokens)
+    analyzer.tree_print()
     analyzer.print(code, "Source Code")
     print("")
