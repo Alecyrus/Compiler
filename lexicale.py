@@ -1,4 +1,6 @@
 import copy
+from pprint import pprint
+from prettytable import PrettyTable 
 
 class Lexicale(object):
     def __init__(self):
@@ -85,13 +87,13 @@ class Lexicale(object):
         self.tokens.append(token)
 
 
-    def push_symbol_table(self, target, start, length, string, type=None, value=None):
+    def push_symbol_table(self, target, start, length, string, type='', value=''):
         if target not in self.has_scanned:
             symbol = {"start":start, "length":length, "string":string, "type":type, "value":value}
             self.symbol_table.append(symbol)
             return len(self.symbol_table) - 1
 
-    def generate_token(self, token_name, attribute=None):
+    def generate_token(self, token_name, attribute=''):
         #return {"moroheme":morpheme, "token_name":type, "attribute":attribute}
         return (token_name, attribute)
 
@@ -127,12 +129,12 @@ class Lexicale(object):
 
     def dfa_relop(self, code, current):
         target = ""
-        s5 = {"token":("RELOP", "EQ"), "_next":1, "target":"="}
-        s2 = {"token":("RELOP", "LE"), "_next":2, "target":"<="}
-        s3 = {"token":("RELOP", "NE"), "_next":2, "target":"<>"}
-        s4 = {"token":("RELOP", "LT"), "_next":1, "target":"<"}
-        s7 = {"token":("RELOP", "GE"), "_next":2, "target":">="}
-        s8 = {"token":("RELOP", "GT"), "_next":2, "target":">"}
+        s5 = {"token":("EQ", "EQ"), "_next":1, "target":"="}
+        s2 = {"token":("LE", "LE"), "_next":2, "target":"<="}
+        s3 = {"token":("NT", "NE"), "_next":2, "target":"<>"}
+        s4 = {"token":("LE", "LT"), "_next":1, "target":"<"}
+        s7 = {"token":("GE", "GE"), "_next":2, "target":">="}
+        s8 = {"token":("GT", "GT"), "_next":2, "target":">"}
         end_states = [s5,s2,s3,s4,s7,s8] 
         s1 = {"=":s2, ">":s3, "other":s4}
         s6 = {"=":s7,"other":s8}
@@ -175,10 +177,25 @@ class Lexicale(object):
         print("Get a token: %s" % str(self.tokens[len(self.tokens)-1]))
         return self.tokens.pop()
 
+
+
+    def pretty_print(self, symbol_table):
+        print('#\n\n---------Symbol Table---------#')
+        cols = ['string', 'start', 'length', 'type','value']
+        table = PrettyTable(symbol_table[0].keys())
+        table.padding_width = 1
+        for i in range(len(symbol_table)):
+            temp=[]
+            for p in range(len(cols)):
+                temp.append(symbol_table[i][cols[p]])
+            table.add_row(copy.deepcopy(temp))
+        print(table)
+        print('#---------Symbol Table---------#')
+
 if __name__ == "__main__":
     code = """
     int a;
-    int b=5\;
+    int b=5;
     float c=1.222;
 while(a < 40)
 { 
@@ -192,13 +209,10 @@ while(a < 40)
     #code = input("Please input your code:\n")
     scanner = Lexicale()
     tokens, symbol_table = scanner.scan(code)
-    print("\nTOKENS:")
-    for token in tokens:
-       print(token)
-    print("\nSYMBOL_TABLE:")
     for symbol in symbol_table:
         print(symbol)
-    scanner.get_token()
+    scanner.pretty_print(symbol_table)
+    #scanner.get_token()
 
 
 

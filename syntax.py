@@ -3,6 +3,7 @@ from pprint import pprint
 from prettytable import PrettyTable
 import copy
 import pdb 
+import sys
 
 
 class Syntax(object):
@@ -45,7 +46,6 @@ class Syntax(object):
                       "<>":"NE",
                       "(":"LP",
                       ")":"RP"}
-        keywords = ["WHILE", "IF", "DO", "ELSE", "THEN"]
         raw_productions = productions.replace(' ','').split('\n')
         self.pros = []
 
@@ -58,7 +58,8 @@ class Syntax(object):
                     if not temp[i].isupper():
                         temp[i] = temp[i].upper()
                         if (temp[i] not in self.non_ts) and temp[i] not in self.ts:
-                            self.ts.append(temp[i])
+                            if temp[i] != 'NULL':
+                                self.ts.append(temp[i])
                 if temp[i] in symbol_map.keys() and symbol_map[temp[i]] not in self.ts:
                     self.ts.append(symbol_map[temp[i]])
                 temp[i] = temp[i].replace(temp[i], symbol_map.get(temp[i], temp[i]))
@@ -67,15 +68,19 @@ class Syntax(object):
             if p[0] not in self.non_ts:
                 self.non_ts.append(p[0])
         self.ts.append('$')
-        self.print(self.pros, "Productions")
-        self.print(self.ts, "Terminal symbols")
-        self.print(self.non_ts, "Non-terminal symbols")
+        #self.print(self.pros, "Productions")
+        #self.print(self.ts, "Terminal symbols")
+        #self.print(self.non_ts, "Non-terminal symbols")
         self.get_all_states()
-        self.print_table()
+        #self.print_table()
+        return 
+        #self.get_follow('D')
+        #self.get_first('D')
+        #self.get_first('S')
 
 
 
-    def print_table(self):
+    def pretty_print(self):
         #print(self.ts)
         #print(self.non_ts)
         print("#--------Analyze Table--------#")
@@ -175,7 +180,7 @@ class Syntax(object):
             temp = self.forward(nas_state)
             for t in temp:
                 nas_list.append((copy.deepcopy(self.states[t]), t))
-        self.print(self.states, 'ALL_states')
+        #self.print(self.states, 'ALL_states')
         #self.print(self.analyze_table, 'Analyze Table')
 
         
@@ -197,7 +202,10 @@ class Syntax(object):
             for p in self.pros:
                 if p[0] == self.pros[pro[0]][pro[1]]:
                     if (self.pros.index(p), 1) not in closure:
-                        closure.append((self.pros.index(p), 1))
+                        if p[1] == 'NULL' and (self.pros.index(p), -1) not in closure:
+                            closure.append((self.pros.index(p), -1))
+                        else:
+                            closure.append((self.pros.index(p), 1))
                     if p[1] not in marked:
                         pros.append((self.pros.index(p), 1))
                         marked.append(p[1])
@@ -245,10 +253,14 @@ class Syntax(object):
                 for p in self.pros:
                     if p[0] == pro:
                         stack.append(p[1])
-            if pro in self.ts and pro not in first:
+            if ( pro in self.ts or pro=='NULL') and pro not in first:
                 first.append(pro)
+                if pro == 'NULL':
+                    for temp in self.pros:
+                        if temp[0] == index and temp[1]!='NULL' and index in temp[1:-1]:
+                            stack.append(temp[temp[1:].index(index)+2])
             has_check.append(pro)
-        #self.print(first, index)
+        #self.print(first, index+"'s first")
         return first
 
 
@@ -273,11 +285,16 @@ class Syntax(object):
                         self.dir_follow(pro[0], follow, has_checked)
                     else:
                         #print(pro)
+                        #print(pro[index])
+                        #print(pro[0])
                         temp = self.get_first(pro[index+1])
+                        #print(temp)
                         for ts in temp:
                             if ts != 'NULL' and ts not in follow:
                                 #print("ADD "+ ts)
                                 follow.append(ts)
+                            elif ts == 'NULL':
+                                self.dir_follow(pro[0], follow, has_checked)
                         if 'NULL' in temp:
                             self.dir_follow(pro[0], follow, has_checked)
         #self.print(follow, "non_ts FOLLOW:" + non_ts)
@@ -286,11 +303,13 @@ class Syntax(object):
         follow = []
         has_checked = []
         self.dir_follow(non_ts, follow, has_checked)
-        #self.print(follow, "result")
+        #self.print(follow, non_ts+"'s follow")
         return follow
 
     def parser(self, tokens):
-        #self.print(tokens, "Tokens")
+        self.result = []
+        self.result_numbers = []
+        self.print(tokens, "Tokens")
         tokens.append(('$', 'EOF'))
         self.tokens = copy.deepcopy(tokens)
         self.tokens.reverse()
@@ -314,18 +333,24 @@ class Syntax(object):
                 #print("2: ", end="")
                 symbol_stack.append(token)
                 self.tokens.pop()
-                analyze_stack.append(Action[token[0]][1:])
+                analyze_stack.append(int(Action[token[0]][1:]))
             elif Action[token[0]][0] == 'r':
-                pro = self.pros[int(Action[token[0]][1])]
+                pro = self.pros[int(Action[token[0]][1:])]
+                #print(pro)
                 #print("2: ", end="")
-                for i in range(len(self.pros[int(Action[token[0]][1])][1:])):
+                len_b = len(pro[1:])
+                if pro[1] == 'NULL':
+                    len_b = 0
+                for i in range(len_b):
+                    #if pro[1] != 'NULL':
                     symbol_stack.pop()
                     analyze_stack.pop()
                 #print("3: ", end="")
                 top = analyze_stack[len(analyze_stack)-1]
                 symbol_stack.append(pro[0])
-                analyze_stack.append(self.analyze_table[str(top)]['Goto'][pro[0]])
+                analyze_stack.append(int(self.analyze_table[str(top)]['Goto'][pro[0]]))
                 self.result.append(pro)
+                self.result_numbers.append([int(Action[token[0]][1:])])
                 
             elif Action[token[0]] == 'accept':
                 break
@@ -333,67 +358,5 @@ class Syntax(object):
                 print("Syntax Error!")
                 break
         self.print(self.result, "RESULTS")
+        self.print(self.result_numbers, "Stream")
                 
-
-if __name__ == "__main__":
-    code = """
-    int a;
-    int b=5;
-    float c=1.222;
-while(a < 40)
-    if (a>=4)
-        b=5;
-    then
-        a=c;
-    else
-        a=b; """
-    #code = input("Please input your code:\n")
-    code2 = "a*b+c"
-    # lexicale section
-    scanner = Lexicale()
-    tokens, symbol_table = scanner.scan(code2)
-    print("\nTOKENS:")
-    for token in tokens:
-       print(token)
-    print("\nSYMBOL_TABLE:")
-    for symbol in symbol_table:
-        print(symbol)
-
-    # grammar section
-    productions1 = """
-            Q->('E')
-            E->('E','+','T')
-            E->('T',)
-            T->('T','*','F')
-            T->('F',)
-            F->('(','E',')')
-            F->('id',)
-    """
-    productions2 = """
-            Q->('D','S')
-            D->('id', ';', 'D')
-            D->('null',)
-            L->('int',)
-            L->('float',)
-            S->('id','=','E', ";")
-            S->('if','(','C',')','S')
-            S->('if','(','C',')','S','else','S')
-            S->('while','(','C',')','S','do','S',';')
-            S->('S',';','S')
-            C->('E','>','E')
-            C->('E','<','E')
-            C->('E','==','E')
-            E->('E','+','E')
-            E->('E','-','E')
-            E->('T',)
-            T->('F',)
-            T->('T','*','F')
-            T->('T','/','F')
-            F->('(','E',')')
-            F->('id',)
-            F->('int10',)
-    """
-    analyzer = Syntax(scanner)
-    analyzer.initialize(productions1)
-    analyzer.parser(tokens)
-    print("code: "+code3)
