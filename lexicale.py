@@ -35,7 +35,7 @@ class Lexicale(object):
     def scan(self, code):
         # setp 1
         code = self.pre_handle(code)
-        print("step 1: %s" % code)
+        #print("step 1: %s" % code)
   
         # setp 2
         self.has_scanned = []
@@ -101,7 +101,7 @@ class Lexicale(object):
     def dfa_operator(self, code, current):
         token = self.generate_token(self.operator[code[current]])
         _next = 1
-        print("Fetch %s --> %s" %(code[current], self.operator[code[current]]))
+        #print("Fetch %s --> %s" %(code[current], self.operator[code[current]]))
         self.push_tokens(code[current], token)
         return code[current], _next
 
@@ -114,7 +114,7 @@ class Lexicale(object):
                 if target in self.keywords.keys():
                     token = self.generate_token(self.keywords[target])
                     _next = len(target)
-                    print("Fetch %s --> %s" %(target, self.keywords[target]))
+                    #print("Fetch %s --> %s" %(target, self.keywords[target]))
                     self.push_tokens(target, token)
                     return target, _next
             elif code[index].isdigit():
@@ -125,7 +125,7 @@ class Lexicale(object):
                 index = self.push_symbol_table(target, current, _next, target)
                 token = self.generate_token("ID", index)
                 self.push_tokens(target, token)
-                print("Fetch %s --> %s" %(target, "ID"))
+                #print("Fetch %s --> %s" %(target, "ID"))
                 return target, _next
 
     def dfa_relop(self, code, current):
@@ -153,7 +153,7 @@ class Lexicale(object):
             state = new_state 
         _next = len(state['target'])
         self.push_tokens(state['target'], state['token'])
-        print("Fetch %s --> %s" %(state['target'], state['token'][1]))
+        #print("Fetch %s --> %s" %(state['target'], state['token'][1]))
         return state['target'], _next
 
 
@@ -165,7 +165,7 @@ class Lexicale(object):
                 target  = "%s%s" % (target, code[index])
             else:
                 _next = len(target)
-                print("Fetch %s --> %s" %(target, "DIGIT"))
+                #print("Fetch %s --> %s" %(target, "DIGIT"))
                 try:
                     index = self.push_symbol_table(target, current, _next, target, "INT", int(target))
                 except ValueError:
@@ -181,7 +181,7 @@ class Lexicale(object):
 
 
     def pretty_print(self, symbol_table):
-        print('#\n\n---------Symbol Table---------#')
+        print('\n\n#---------Symbol Table---------#')
         cols = ['string', 'start', 'length', 'type','value']
         table = PrettyTable(cols)
         table.padding_width = 1

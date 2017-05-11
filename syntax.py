@@ -360,38 +360,42 @@ class Syntax(object):
             # shift##
             #self.print(Action, "Action")
             #self.print(Action[token[0]], "current_action")
-            if Action[token[0]][0] == 's':
-                #print("2: ", end="")
-                symbol_stack.append(token)
-                self.tokens.pop()
-                analyze_stack.append(int(Action[token[0]][1:]))
-            elif Action[token[0]][0] == 'r':
-                pro = self.pros[int(Action[token[0]][1:])]
-                #print(pro)
-                #print("2: ", end="")
-                len_b = len(pro[1:])
-                if pro[1] == 'NULL':
-                    len_b = 0
-                for i in range(len_b):
-                    #if pro[1] != 'NULL':
-                    symbol_stack.pop()
-                    analyze_stack.pop()
-                #print("3: ", end="")
-                top = analyze_stack[len(analyze_stack)-1]
-                symbol_stack.append(pro[0])
-                analyze_stack.append(int(self.analyze_table[str(top)]['Goto'][pro[0]]))
-                self.result.append(pro)
-                self.result_numbers.append(int(Action[token[0]][1:]))
+            try:
+                if Action[token[0]][0] == 's':
+                    #print("2: ", end="")
+                    symbol_stack.append(token)
+                    self.tokens.pop()
+                    analyze_stack.append(int(Action[token[0]][1:]))
+                elif Action[token[0]][0] == 'r':
+                    pro = self.pros[int(Action[token[0]][1:])]
+                    #print(pro)
+                    #print("2: ", end="")
+                    len_b = len(pro[1:])
+                    if pro[1] == 'NULL':
+                        len_b = 0
+                    for i in range(len_b):
+                        #if pro[1] != 'NULL':
+                        symbol_stack.pop()
+                        analyze_stack.pop()
+                    #print("3: ", end="")
+                    top = analyze_stack[len(analyze_stack)-1]
+                    symbol_stack.append(pro[0])
+                    analyze_stack.append(int(self.analyze_table[str(top)]['Goto'][pro[0]]))
+                    self.result.append(pro)
+                    self.result_numbers.append(int(Action[token[0]][1:]))
                 
-            elif Action[token[0]] == 'accept':
-                pro = self.pros[0]
-                self.result.append(pro)
-                self.result_numbers.append(0)
+                elif Action[token[0]] == 'accept':
+                    pro = self.pros[0]
+                    self.result.append(pro)
+                    self.result_numbers.append(0)
 
-                break
-            else:
-                print("Syntax Error!")
-                break
-        self.print(self.result, "RESULTS")
-        self.print(self.result_numbers, "Stream")
+                    break
+                else:
+                    print("Syntax Error!")
+                    break
+            except Exception as e:
+                print("Syntax Error")
+                return
+        self.print(self.result, "Production Sequence")
+        self.print(str(self.result_numbers)[1:-1], "Production Sequence(serial number)")
                 
