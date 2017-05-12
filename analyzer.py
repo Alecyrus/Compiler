@@ -7,7 +7,7 @@ import fire
 from lexicale import Lexicale
 from  syntax import Syntax
 
-class HappyComplier(object):
+class HappyCompiler(object):
     def __init__(self, verbose=False):
         self.verbose = verbose
 
@@ -72,7 +72,7 @@ class HappyComplier(object):
         self.analyzer.pretty_print()
 
 
-    def complier(self):
+    def compiler(self):
         while True:
             print("\nInput the source code, and press Ctrl+D to complete the code entry:\n>>> ", end="")
             code = sys.stdin.read()
@@ -85,5 +85,5 @@ class HappyComplier(object):
             print('')
 
 if __name__ == '__main__':
-    fire.Fire(HappyComplier)
+    fire.Fire(HappyCompiler)
 
