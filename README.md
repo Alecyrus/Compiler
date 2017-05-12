@@ -22,9 +22,10 @@
 ## 使用说明
 > 默认文法为报告书上的文法经过修改后的可通过以下命令查看
 > \# python3 analyzer.py like_c_productions
-![](http://upload-images.jianshu.io/upload_images/1113810-20bfc03113c47c0d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 >
-暂不支持界面输入文法，若需要修改文法，进入`analyzer.py` 修改变量`self.like_c_productions`即可
+>![](http://upload-images.jianshu.io/upload_images/1113810-20bfc03113c47c0d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+>
+>暂不支持界面输入文法，若需要修改文法，进入`analyzer.py` 修改变量`self.like_c_productions`即可
 
 ### 运行测试示例
 > \# python3 analyzer.py test --verbose
@@ -39,8 +40,9 @@
 ### 进入即时编译环境
 > \# python3 analyzer.py compiler
 
+>然后，输入多行代码，按`Ctrl+D`结束代码输入进行编译，若输入的代码不符合文法，则会显示相应错误。
+>
 >![](http://upload-images.jianshu.io/upload_images/1113810-1d7d6a31e0cf3137.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-然后，输入多行代码，按`Ctrl+D`结束代码输入进行编译，若输入的代码不符合文法，则会显示相应错误。
 
 #### 示例：
 
